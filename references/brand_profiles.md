@@ -13,6 +13,22 @@
 - **Lĩnh vực:** Vận chuyển nhà/văn phòng
 - **Website:** chuyennhathanhhung.vn
 
+## Required Hashtags (per-brand mandatory)
+
+Mandatory tag set MUST xuất hiện trong mọi output (TikTok short_hook, TikTok
+full_caption, YouTube description, Threads post) trừ khi rơi vào exception
+list (xem SKILL.md workflow → hashtag enforcement).
+
+```yaml
+required_hashtags:
+  dnd:
+    - "#dnd"
+    - "#dndsaigon"
+    - "#benhvienmat"
+    - "#benhviendnd"
+  thanh_hung: []
+```
+
 ## Hashtag pool theo lĩnh vực
 
 ### Y tế mắt

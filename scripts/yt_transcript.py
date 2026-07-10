@@ -8,10 +8,10 @@ Pipeline:
 
 Usage:
   # Ưu tiên: YouTube URL → youtube-transcript-api → fallback Deepgram
-  python3 scripts/yt_transcript.py --youtube-url "https://youtu.be/xxx" --output /tmp/transcript.txt --stats
+  python3 scripts/yt_transcript.py --youtube-url "https://youtu.be/xxx" --output <tempdir>/transcript.txt --stats
 
   # Trực tiếp file audio/video local → Deepgram
-  python3 scripts/yt_transcript.py --input /tmp/yt_audio.mp3 --output /tmp/transcript.txt --stats
+  python3 scripts/yt_transcript.py --input <tempdir>/yt_audio.mp3 --output <tempdir>/transcript.txt --stats
 """
 
 import argparse
@@ -67,12 +67,13 @@ DEEPGRAM_URL = _CFG["DEEPGRAM_URL"]
 
 DEFAULT_CHUNK_SIZE = 8000
 DEFAULT_MAX_CHARS = 100000
+DEFAULT_OUTPUT = str(Path(tempfile.gettempdir()) / "yt_transcript.txt")
 REQUEST_TIMEOUT = 60
 DEEPGRAM_TIMEOUT = 300
 
 # Cookies file locations (for yt-dlp)
 COOKIES_PERSISTENT = WORKSPACE_ROOT / "credentials" / "yt_cookies.txt"
-COOKIES_TMP = Path("/tmp/yt_cookies.txt")
+COOKIES_TMP = Path(tempfile.gettempdir()) / "yt_cookies.txt"
 
 # Transcript cache
 CACHE_DIR = Path(__file__).resolve().parents[1] / ".cache"
@@ -519,7 +520,7 @@ def create_session_with_cookies() -> requests.Session:
 def download_youtube_audio(youtube_url: str, output_dir: str) -> str:
     """
     Download audio từ YouTube bằng yt-dlp → mp3.
-    Output vào /tmp, tự cleanup sau.
+    Output vào tempdir, tự cleanup sau.
     Returns path to downloaded mp3 file.
     """
     video_id = extract_video_id(youtube_url)
@@ -649,7 +650,10 @@ def transcribe_deepgram(
         'webm': 'video/webm',
         'm4a': 'audio/m4a',
         'ogg': 'audio/ogg',
-        'flac': 'audio/flac'
+        'flac': 'audio/flac',
+        'mov': 'video/quicktime',
+        'mkv': 'video/x-matroska',
+        'avi': 'video/x-msvideo'
     }
     mime_type = mime_types.get(ext, 'audio/mpeg')
 
@@ -767,7 +771,7 @@ def fetch_transcript_with_fallback(
     Fetch transcript with deterministic fallback:
     0. Cache: check file-based cache (7-day TTL) first
     1. Primary: youtube-transcript-api (FREE captions, list()-first)
-    2. Fallback: yt-dlp download audio to /tmp → Deepgram STT
+    2. Fallback: yt-dlp download audio to tempdir → Deepgram STT
 
     Temp files are ALWAYS cleaned up (success or fail).
     """
@@ -820,7 +824,7 @@ def fetch_transcript_with_fallback(
 
 
     # ── Layer 2: yt-dlp + Deepgram (fallback) ──
-    # Download audio to /tmp → transcribe → cleanup
+    # Download audio to tempdir → transcribe → cleanup
     temp_dir = None
     try:
         temp_dir = tempfile.mkdtemp(prefix="yt_transcript_")
@@ -983,7 +987,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", help="Path file audio/video local (Deepgram mode)")
     p.add_argument("--youtube-url", help="YouTube URL (youtube-captions + Deepgram fallback)")
-    p.add_argument("--output", default="/tmp/yt_transcript.txt")
+    p.add_argument("--output", default=DEFAULT_OUTPUT)
     p.add_argument("--lang", default="vi")
     p.add_argument("--chunk-size", type=int, default=0,
                    help=f"Chars per chunk. Default auto {DEFAULT_CHUNK_SIZE}")

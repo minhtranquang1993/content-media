@@ -75,3 +75,4 @@
 4. **Không nhắc tên bệnh viện** trực tiếp (để tránh cảm giác quảng cáo) — hashtag #DNDSaiGon là đủ
 5. **Không thêm link** vào cuối post — hashtag là điểm dừng
 6. **Độ dài ưu tiên: 200-380 ký tự** — ngắn hơn vẫn tốt, tránh dài quá
+7. **Hashtag rule**: Không áp 4 hashtag mandatory DND (`#dnd #dndsaigon #benhvienmat #benhviendnd`) vào FB post BS. Chỉ dùng 2-3 hashtag từ personal pool BS ở section trên.

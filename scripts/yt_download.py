@@ -2,13 +2,14 @@
 """
 yt_download.py — Download audio từ YouTube/Shorts về mp3
 Usage:
-  python3 scripts/yt_download.py --url "https://youtube.com/shorts/xxx" --output /tmp/yt_audio.mp3
-  python3 scripts/yt_download.py --url "https://youtu.be/xxx" --cookies /tmp/yt_cookies.txt --output /tmp/yt_audio.mp3
+  python3 scripts/yt_download.py --url "https://youtube.com/shorts/xxx" --output <tempdir>/yt_audio.mp3
+  python3 scripts/yt_download.py --url "https://youtu.be/xxx" --cookies <tempdir>/yt_cookies.txt --output <tempdir>/yt_audio.mp3
 """
 
 import argparse
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import os as _os_cred
@@ -45,7 +46,7 @@ def download(url: str, output: str, cookies: str = None) -> bool:
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--url", required=True)
-    p.add_argument("--output", default="/tmp/yt_audio.mp3")
+    p.add_argument("--output", default=str(Path(tempfile.gettempdir()) / "yt_audio.mp3"))
     p.add_argument("--cookies", default=None)
     args = p.parse_args()
 

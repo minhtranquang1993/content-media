@@ -1,0 +1,12 @@
+# yt-content skill — gitignore
+
+# Transcript cache files (auto-generated, 7-day TTL)
+.cache/*.txt
+
+# Python cache
+scripts/__pycache__/
+scripts/*.pyc
+
+# Backup files
+scripts/*.bak
+scripts/*.bak-*

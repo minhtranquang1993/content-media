@@ -119,15 +119,15 @@ python3 skills/content-media/scripts/yt_transcript.py \
 3. **Title YouTube** — có keyword chính, max 70 ký tự
 4. **Description YouTube** — 300-500 từ, chuẩn SEO, có CTA + thông tin liên hệ + hashtag
 5. **Threads post** — max 500 ký tự, casual tone, hook-first, không cần link preview
-
-**Hashtag mandatory check (brand DND)** — 4 tag `#dnd #dndsaigon #benhvienmat #benhviendnd` PHẢI có ở TikTok full_caption + YouTube description + Threads post. TikTok short_hook (≤150 ký tự): ưu tiên `#dnd + #dndsaigon` nếu đủ chỗ; nếu không, chọn 1-2 tag phù hợp nhất — không phải ép cả 4 tag. Brand Thành Hưng: `required_hashtags` = `[]`, tuyệt đối không chèn tag DND.
-
 6. **[Optional] Facebook post (BS)** — nếu có `profile-bsha` hoặc `profile-bstuan`:
    - Đọc persona từ `references/doctor_profiles.md`
    - Viết 200-380 ký tự, ngôi thứ nhất, theo voice bác sĩ tương ứng
    - Chọn 1 điểm nổi bật từ video, diễn giải qua lăng kính chuyên môn của BS
    - 2-3 hashtag cuối (không link, không tag bệnh viện trực tiếp)
    - Hashtag pool riêng của BS. KHÔNG merge với `required_hashtags[dnd]`.
+
+#### Hashtag mandatory check (brand DND)
+4 tag `#dnd #dndsaigon #benhvienmat #benhviendnd` PHẢI có ở TikTok full_caption + YouTube description + Threads post. TikTok short_hook (≤150 ký tự): ưu tiên `#dnd + #dndsaigon` nếu đủ chỗ; nếu không, chọn 1-2 tag phù hợp nhất — không phải ép cả 4 tag. Brand Thành Hưng: `required_hashtags` = `[]`, tuyệt đối không chèn tag DND.
 
 ## Notes
 - Cookies file: `.claude\credentials\yt_cookies.txt` (cho yt-dlp fallback, nếu có)

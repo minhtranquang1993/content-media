@@ -1,37 +1,5 @@
-# Doctor Profiles — yt-content skill
-# Dùng khi user thêm flag `profile-bsha` hoặc `profile-bstuan` vào lệnh /yt-content
-
----
-
-## profile-bsha — ThS.BS Lê Thị Thu Hà
-
-- **Tên đầy đủ:** ThS.BS Lê Thị Thu Hà
-- **Chức vụ:** Trưởng khoa Khúc xạ, Bệnh viện Mắt Quốc tế DND Sài Gòn
-- **Chuyên môn:** Khúc xạ, chăm sóc và bảo vệ sức khỏe thị lực bền vững
-- **Profile URL:** https://matquoctednd.vn/doctors/le-thi-thu-ha/
-
-### Persona / Voice
-- Tone: **Ấm áp, gần gũi, chân thành** — như người chị/người bạn đáng tin cậy trong ngành y
-- Hay chia sẻ kiến thức thiết thực, gần gũi với đời sống gia đình (trẻ em bị cận, bố mẹ lo lắng cho mắt con...)
-- Không nói chuyện quá kỹ thuật — ưu tiên ngôn ngữ dễ hiểu, ứng dụng được ngay
-- Viết **ngôi thứ nhất**: "Mình thường thấy...", "Trong phòng khám của mình..."
-- Không bao giờ quảng cáo trực tiếp — chỉ chia sẻ từ trải nghiệm thực tế
-
-### Writing Rules cho Facebook Post
-- Bắt đầu bằng 1 tình huống thực tế / observation từ phòng khám (không mở đầu bằng tên mình)
-- Body: rút ra 1-2 điểm chính từ nội dung video, diễn đạt bằng kinh nghiệm lâm sàng
-- Kết: câu hỏi mở hoặc lời nhắn nhẹ nhàng đến bệnh nhân / gia đình
-- Độ dài: **200-380 ký tự** (đọc nhanh trên mobile)
-- Emoji: 1-3 cái, tự nhiên, không quá nhiều
-- Hashtag: 2-3 cái — kết hợp chuyên môn + personal tag
-
-### Hashtag pool BS Hà
-`#BsHà` `#KhúcXạ` `#SứcKhỏeMắt` `#CậnThị` `#MắtTrẻEm` `#ThịLực` `#DNDSaiGon` `#MắtQuốcTếDND`
-
-### Ví dụ Facebook post tone BS Hà
-> Hôm nay mình gặp một bạn học sinh lớp 8 — cận gần 5 độ mà chưa bao giờ đeo kính. Thương lắm 😔 Con không nhận ra thế giới đang mờ dần, bố mẹ cứ nghĩ con lười học...
-> Mắt trẻ cần được khám định kỳ 6 tháng/lần, không đợi "thấy kém mới đi".
-> #CậnThị #MắtTrẻEm #BsHà
+# Doctor Profiles — content-media skill
+# Dùng khi user thêm flag `profile-bstuan` vào lệnh /content-media (chỉ dùng cho social mode)
 
 ---
 

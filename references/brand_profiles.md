@@ -13,6 +13,30 @@
 - **Lĩnh vực:** Vận chuyển nhà/văn phòng
 - **Website:** chuyennhathanhhung.vn
 
+## ASR Glossary — sửa lỗi transcript (tên riêng + thuật ngữ)
+
+Transcript từ ASR (youtube-captions / Deepgram) hay nghe nhầm tên riêng và
+thuật ngữ y khoa. Dùng glossary này làm **ngữ cảnh cho Claude tự sửa** khi viết
+content — KHÔNG regex thay thế mù. Nếu transcript có từ nghe gần giống mục bên
+trái, sửa về dạng chuẩn bên phải.
+
+### Tên riêng (brand + bác sĩ)
+- Bệnh viện Mắt Quốc tế DND Sài Gòn (biến thể sai ASR: "đê en đê", "d and d", "dnd sài gòn", "đi ơn đi")
+- BS Bùi Quang Tuấn (sai: "bùi quang tuấn", "quang tuấn", "bác tuấn")
+- matquoctednd.vn (sai: "mắt quốc tế dnd chấm vn")
+
+### Thuật ngữ mắt (chuẩn hoá chính tả)
+- cận thị · loạn thị · viễn thị · lão thị
+- LASIK (sai: "lê sịt", "la sịt", "lasic") · Femto LASIK · SMILE · Relex Smile
+- Phakic / Phakic ICL (sai: "pha kích", "phaic", "pha kic")
+- Phaco (sai: "pha cô", "pha co") · đục thủy tinh thể
+- khúc xạ · độ cận · kính áp tròng · Ortho-K (sai: "otho ka", "orto k")
+- võng mạc · dịch kính · đáy mắt · giác mạc · thủy tinh thể
+- nhược thị · khô mắt · tăng nhãn áp / glaucoma
+
+> Brand Thành Hưng (vận chuyển): glossary trên KHÔNG áp dụng. Chỉ chuẩn hoá tên
+> "Thành Hưng" và địa danh nếu nghe nhầm.
+
 ## Required Hashtags (per-brand mandatory)
 
 Mandatory tag set MUST xuất hiện trong mọi output (TikTok short_hook, TikTok

@@ -103,6 +103,10 @@ PLACEHOLDER_REGEX = re.compile('|'.join(PLACEHOLDER_PATTERNS), re.IGNORECASE | r
 MIN_MEANINGFUL_CHARS = 50
 MIN_MEANINGFUL_LINE_RATIO = 0.3
 
+# ASR confidence thresholds (Deepgram word-level)
+LOW_CONF_WORD_THRESHOLD = 0.6   # 1 từ dưới ngưỡng này = "không chắc"
+REPAIR_GATE_RATIO = 0.15        # low_conf_ratio ≥ ngưỡng này → nên chạy repair pass
+
 
 # =============================================================================
 # Cache helpers
@@ -187,6 +191,7 @@ class TranscriptResult(NamedTuple):
     provider: str
     provider_attempts: list
     quality_checks: dict
+    confidence_stats: dict = {}
 
 
 def create_session_with_retry(
@@ -273,6 +278,56 @@ def validate_transcript_quality(transcript: str) -> dict:
         "total_lines": total_lines,
         "meaningful_lines": meaningful_line_count,
         "meaningful_line_ratio": round(meaningful_ratio, 3),
+    }
+
+
+def compute_confidence_stats(deepgram_data: dict) -> dict:
+    """
+    Tính word-level confidence stats từ Deepgram response.
+    Deepgram trả `words[].confidence` (0-1) trong alternatives[0].
+    Returns dict: word_count, low_conf_count, low_conf_ratio, mean_conf,
+    low_conf_samples (tối đa 20 từ đáng ngờ), repair_suggested (bool).
+    Trả stats rỗng nếu không có word-level data.
+    """
+    try:
+        alt = (
+            deepgram_data.get("results", {})
+            .get("channels", [{}])[0]
+            .get("alternatives", [{}])[0]
+        )
+        words = alt.get("words", []) or []
+    except (IndexError, AttributeError):
+        words = []
+
+    if not words:
+        return {
+            "available": False,
+            "word_count": 0,
+            "low_conf_count": 0,
+            "low_conf_ratio": 0.0,
+            "mean_conf": None,
+            "low_conf_samples": [],
+            "repair_suggested": False,
+        }
+
+    confs = [float(w.get("confidence", 1.0)) for w in words]
+    low = [w for w, c in zip(words, confs) if c < LOW_CONF_WORD_THRESHOLD]
+    low_ratio = len(low) / len(words)
+    mean_conf = sum(confs) / len(confs)
+    samples = [
+        {"word": w.get("word") or w.get("punctuated_word", ""),
+         "confidence": round(float(w.get("confidence", 1.0)), 3)}
+        for w in low[:20]
+    ]
+
+    return {
+        "available": True,
+        "word_count": len(words),
+        "low_conf_count": len(low),
+        "low_conf_ratio": round(low_ratio, 3),
+        "mean_conf": round(mean_conf, 3),
+        "low_conf_samples": samples,
+        "repair_suggested": low_ratio >= REPAIR_GATE_RATIO,
     }
 
 
@@ -626,10 +681,10 @@ def transcribe_deepgram(
     input_path: str,
     lang: str = "vi",
     session: requests.Session = None,
-) -> tuple[str, float]:
+) -> tuple[str, float, dict]:
     """
     Transcribe file audio/video qua Deepgram nova-2.
-    Returns: (transcript, duration_seconds)
+    Returns: (transcript, duration_seconds, confidence_stats)
     """
     if session is None:
         session = create_session_with_retry()
@@ -745,7 +800,7 @@ def transcribe_deepgram(
                     detected = data2.get("results", {}).get("channels", [{}])[0].get("detected_language", "unknown")
                     print(f"✅ Deepgram detect_language worked! Detected: {detected}", file=sys.stderr)
                     duration2 = float(data2.get("metadata", {}).get("duration", 0) or 0)
-                    return transcript2, duration2
+                    return transcript2, duration2, compute_confidence_stats(data2)
         except Exception as e2:
             print(f"⚠️ Deepgram detect_language retry also failed: {e2}", file=sys.stderr)
 
@@ -756,7 +811,7 @@ def transcribe_deepgram(
         )
 
     duration = float(data.get("metadata", {}).get("duration", 0) or 0)
-    return transcript, duration
+    return transcript, duration, compute_confidence_stats(data)
 
 
 # =============================================================================
@@ -862,7 +917,7 @@ def fetch_transcript_with_fallback(
             "error_msg": None,
         }
         try:
-            transcript, duration = transcribe_deepgram(
+            transcript, duration, conf_stats = transcribe_deepgram(
                 input_path=audio_path,
                 lang=lang,
                 session=session,
@@ -877,6 +932,7 @@ def fetch_transcript_with_fallback(
                 provider="deepgram",
                 provider_attempts=all_attempts,
                 quality_checks=quality,
+                confidence_stats=conf_stats,
             )
         except TranscriptError as e:
             deepgram_attempt["status"] = "failed"
@@ -916,6 +972,7 @@ def save_transcript_with_chunks(
     provider_attempts: list = None,
     quality_checks: dict = None,
     print_stats: bool = False,
+    confidence_stats: dict = None,
 ):
     """Save transcript + chunks + optional JSON stats."""
     truncated = False
@@ -949,6 +1006,7 @@ def save_transcript_with_chunks(
         "chunk_size": effective_chunk_size,
         "truncated": truncated,
         "quality_checks": quality_checks or {},
+        "confidence_stats": confidence_stats or {},
     }
 
     if print_stats:
@@ -1039,6 +1097,7 @@ def main():
                 provider_attempts=result.provider_attempts,
                 quality_checks=result.quality_checks,
                 print_stats=args.stats,
+                confidence_stats=result.confidence_stats,
             )
         else:
             # Local file mode with Deepgram
@@ -1049,7 +1108,7 @@ def main():
                 "error_msg": None,
             }
             try:
-                transcript, duration = transcribe_deepgram(
+                transcript, duration, conf_stats = transcribe_deepgram(
                     input_path=args.input,
                     lang=args.lang
                 )
@@ -1067,6 +1126,7 @@ def main():
                     provider_attempts=provider_attempts,
                     quality_checks=quality,
                     print_stats=args.stats,
+                    confidence_stats=conf_stats,
                 )
             except TranscriptError as e:
                 attempt["status"] = "failed"

@@ -62,7 +62,14 @@ Input router:
   │     ├─ < 12k chars → đọc trực tiếp
   │     └─ ≥ 12k chars → đọc từng chunk, tóm tắt, discard
   │
-  ├─ 4b. MODE ROUTER (parse cờ trong lệnh):
+  ├─ 4b. Verify & Repair transcript (2 tầng — "verify khi cần"):
+  │     ├─ Tầng 1 (LUÔN BẬT, 0 API call thêm): glossary-aware —
+  │     │  Claude tự sửa tên riêng/thuật ngữ theo ASR Glossary khi viết content
+  │     └─ Tầng 2 (GATE, chỉ khi tín hiệu xấu): repair pass làm sạch transcript
+  │        · Deepgram: gate bằng confidence_stats.repair_suggested (low_conf_ratio ≥ 0.15)
+  │        · captions/cache: gate bằng heuristic rác (từ lặp bất thường, câu vô nghĩa)
+  │
+  ├─ 4c. MODE ROUTER (parse cờ trong lệnh):
   │     ├─ có `ads` (hoặc `ads=kx|pc|or`) → MODE = ads
   │     ├─ có `social` HOẶC không cờ nào → MODE = social
   │     └─ có cả `social` lẫn `ads` → MODE = ads + báo nhẹ "đã bỏ qua social"
@@ -157,17 +164,38 @@ python3 skills/content-media/scripts/yt_transcript.py \
 ```
 - Path local luôn quote bằng dấu ngoặc kép để xử lý đúng khoảng trắng trong path
 
-- `--stats` trả JSON: `final_provider`, `char_count`, `chunk_count`, `duration_seconds`, `truncated`
+- `--stats` trả JSON: `final_provider`, `char_count`, `chunk_count`, `duration_seconds`, `truncated`, `confidence_stats`
 - Nếu `chunk_count > 1`: đọc từng chunk file, tóm tắt, rồi viết content từ summary
 
-### Bước 3 — Viết content
+### Bước 2b — Verify & Repair transcript (2 tầng, "verify khi cần")
 
-**Trước tiên xác định MODE (xem Mode Router / 4b):**
+Transcript ASR hay sai tên riêng/thuật ngữ y khoa; audio kém có thể làm cả đoạn
+vô nghĩa. Hai tầng xử lý, tầng 2 chỉ chạy khi thật sự cần (tiết kiệm cost):
+
+**Tầng 1 — Glossary-aware (LUÔN BẬT, miễn phí):**
+- Đọc `references/brand_profiles.md` → section **ASR Glossary**
+- Khi viết content ở Bước 3, coi transcript là output ASR có thể sai: tự sửa
+  tên bác sĩ / tên viện / thuật ngữ mắt về dạng chuẩn trong glossary theo ngữ cảnh
+- **TUYỆT ĐỐI không bịa nội dung mới** — chỉ chuẩn hoá từ đã có, không thêm ý
+
+**Tầng 2 — Repair pass (GATE, chỉ khi tín hiệu xấu):**
+- Đọc `confidence_stats` trong JSON stats:
+  - Nếu `confidence_stats.repair_suggested == true` (Deepgram, `low_conf_ratio ≥ 0.15`)
+    → transcript nhiều từ không chắc → chạy repair pass
+  - `confidence_stats.low_conf_samples` liệt kê các từ đáng ngờ để ưu tiên soi
+- Nhánh **captions/cache** (không có confidence): tự đánh giá nhanh bằng heuristic —
+  câu lặp từ bất thường, cụm vô nghĩa, ngắt câu sai nhiều → mới cần repair
+- **Repair pass** = 1 lượt Claude đọc transcript + glossary, viết lại bản sạch:
+  giữ nguyên 100% ý và thứ tự, CHỈ sửa từ sai/nhiễu, không tóm tắt, không thêm bớt
+- Đa số video sạch (`repair_suggested == false`, heuristic ổn) → **skip tầng 2**, viết content luôn
+
+### Bước 3 — Viết content
+**Trước tiên xác định MODE (xem Mode Router / 4c):**
 - `MODE == ads` → BỎ QUA phần social bên dưới; theo nhánh ads (A1-A8) + `references/facebook_ads.md`.
 - `MODE == social` → viết các output social dưới đây.
 
 #### Social mode
-Đọc transcript từ output file (`--output`), xác định brand (xem `references/brand_profiles.md`), rồi viết:
+Đọc transcript từ output file (`--output`), xác định brand (xem `references/brand_profiles.md`), áp glossary + repair theo Bước 2b, rồi viết:
 1. **Caption TikTok — short_hook** — hook mạnh, max 150 ký tự, 2-3 hashtag, 1-2 emoji
 2. **Caption TikTok — full_caption** — hook + body + CTA, 400-900 ký tự (max 2200), 5 hashtag
 3. **Title YouTube** — có keyword chính, max 70 ký tự
